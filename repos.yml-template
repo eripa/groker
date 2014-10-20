@@ -6,7 +6,9 @@
 #
 # cyanogen:
 #   type: repo
-#   url: ssh://review.mysite.ab:29418/cyanogen/CyanogenMod/android
+#   url: ssh://user@review.mysite.ab:29418/cyanogen/CyanogenMod/android
+#   tags:
+#     - cm-10.1.0-RC3
 # opengrok:
 #   type: git
 #   url: https://github.com/OpenGrok/OpenGrok.git
@@ -19,4 +21,4 @@
 
 cyanogen:
   type: repo
-  url: ssh://review.mysite.ab:29418/cyanogen/CyanogenMod/android
+  url: ssh://user@review.mysite.ab:29418/cyanogen/CyanogenMod/android

@@ -15,12 +15,16 @@ import yaml
 import os
 import shutil
 import sys
+import tempfile
 
 def parse_args():
     parser = argparse.ArgumentParser(description = "***REMOVED*** {OpenGrok helper")
     parser.add_argument('-c', '--config-file',
                         help='Use a non-default configuration (default is repos.yml)',
                         default='repos.yml')
+    parser.add_argument('-o', '--output-dir',
+                        help='Where to put the repositories (usually under OpenGroks src directory, default=/var/opengrok/src)',
+                        default='/var/opengrok/src')
     return parser.parse_args()
 
 def read_config(file_name):
@@ -30,15 +34,29 @@ def read_config(file_name):
     with open(file_name, 'r') as f:
         return yaml.load(f)
 
-def fetch_repos(config):
+def read_remote_repo_refs(url, tags):
+    print(tags)
+    read_cmd = git['ls-remote', url]
+    res = read_cmd().split('\n')
+    refs_lines = [x.split('\t') for x in res if x]
+    refs_dict = dict([(d[1], d[0]) for d in refs_lines])
+    for ref, sha in refs_dict.items():
+        # print(ref, sha)
+        pass
+
+def fetch_repos(output_dir, config):
     for name, details in config.items():
-        print(name, details)
+        if details['type'] == 'repo':
+            print('Fetching individual repos from %s Repo manifest with URL %s to %s' % (name, details['url'], output_dir))
+            read_remote_repo_refs(details['url'], details['tags'])
+        else:
+            print('WARNING: Selected type %s for %s is not yet implemented' % (details['type'], name))
 
 def main():
     args = parse_args()
     config = read_config(args.config_file)
     if config:
-        fetch_repos(config)
+        fetch_repos(args.output_dir, config)
     else:
         sys.exit('No repos found in %s, exiting...' % (args.config_file))
 
