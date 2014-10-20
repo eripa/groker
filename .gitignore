@@ -1,5 +1,7 @@
 # Own ignores
 android
+virtualenv
+repos.yml
 
 
 # Created by https://www.gitignore.io
@@ -59,4 +61,3 @@ docs/_build/
 
 # PyBuilder
 target/
-

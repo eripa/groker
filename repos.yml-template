@@ -1,0 +1,22 @@
+---
+# This is the configuration file for groker helper
+#
+# Format to use:
+# ==============
+#
+# cyanogen:
+#   type: repo
+#   url: ssh://review.mysite.ab:29418/cyanogen/CyanogenMod/android
+# opengrok:
+#   type: git
+#   url: https://github.com/OpenGrok/OpenGrok.git
+#
+# Current types available:
+# ========================
+#
+#   - repo: A repo manifest. Each underlaying repository will be fetched as individual gits
+#   - git: A regular git. It will be fetched as-is
+
+cyanogen:
+  type: repo
+  url: ssh://review.mysite.ab:29418/cyanogen/CyanogenMod/android
