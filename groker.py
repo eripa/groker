@@ -34,21 +34,34 @@ def read_config(file_name):
     with open(file_name, 'r') as f:
         return yaml.load(f)
 
-def read_remote_repo_refs(url, tags):
+def interesting_ref(ref, tags):
+    if 'heads' or 'HEAD' in ref:
+        return True
+    else:
+        ref_split = ref.split()
+        if ref_split[-2] == 'tags' and ref_split[-1] in tags:
+            print('OK!')
+            return True
+    return False
+
+def read_remote_repo_refs(url, tags=[]):
     print(tags)
     read_cmd = git['ls-remote', url]
     res = read_cmd().split('\n')
     refs_lines = [x.split('\t') for x in res if x]
-    refs_dict = dict([(d[1], d[0]) for d in refs_lines])
+    refs_dict = dict([(d[1], d[0]) for d in refs_lines if interesting_ref(d[1], tags)])
     for ref, sha in refs_dict.items():
-        # print(ref, sha)
+        print(ref, sha)
         pass
 
 def fetch_repos(output_dir, config):
     for name, details in config.items():
         if details['type'] == 'repo':
             print('Fetching individual repos from %s Repo manifest with URL %s to %s' % (name, details['url'], output_dir))
-            read_remote_repo_refs(details['url'], details['tags'])
+            if 'tags' in details.keys():
+                read_remote_repo_refs(details['url'], details['tags'])
+            else:
+                read_remote_repo_refs(details['url'])
         else:
             print('WARNING: Selected type %s for %s is not yet implemented' % (details['type'], name))
 
