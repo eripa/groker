@@ -11,6 +11,7 @@ Author: Eric Ripa - eric.ripa@***REMOVED*** (2014-10-20)
 import argparse
 import xml.etree.ElementTree as ET
 from plumbum.cmd import git
+from plumbum.commands.processes import ProcessExecutionError
 import yaml
 import os
 import shutil
@@ -44,30 +45,42 @@ def interesting_ref(ref, tags):
             return True
     return False
 
-def read_remote_repo_refs(url, tags=[]):
-    print(tags)
-    read_cmd = git['ls-remote', url]
-    res = read_cmd().split('\n')
-    refs_lines = [x.split('\t') for x in res if x]
-    refs_dict = dict([(d[1], d[0]) for d in refs_lines if interesting_ref(d[1], tags)])
-    for ref, sha in refs_dict.items():
-        print(ref, sha)
-        pass
+def target_name(name, target):
+    return name + '-' + target
+
+def git_clone(url, tag, target):
+    clone_cmd = git['clone', '-b', tag, url, target]
+    try:
+        clone_cmd()
+    except ProcessExecutionError as e:
+        print('Error cloning %s with tag %s, message was:\n%s' % (url, tag, e.stderr))
+
+def get_git_target(name, details, output_dir):
+    print('working on %s' % (details['url']))
+    for tag in details['tags']:
+        target_directory = os.path.join(output_dir, target_name(name, tag))
+        if os.path.isdir(target_directory):
+            print('  updating tag: %s, target: %s' % (tag, target_directory))
+        else:
+            print('  fetching tag: %s, target: %s' % (tag, target_directory))
+            git_clone(details['url'], tag, target_directory)
+
 
 def fetch_repos(output_dir, config):
     for name, details in config.items():
         if details['type'] == 'repo':
-            print('Fetching individual repos from %s Repo manifest with URL %s to %s' % (name, details['url'], output_dir))
-            if 'tags' in details.keys():
-                read_remote_repo_refs(details['url'], details['tags'])
-            else:
-                read_remote_repo_refs(details['url'])
+            print('repo! %s' % details)
+        elif details['type'] == 'git':
+            get_git_target(name, details, output_dir)
         else:
             print('WARNING: Selected type %s for %s is not yet implemented' % (details['type'], name))
 
 def main():
     args = parse_args()
     config = read_config(args.config_file)
+    if not os.path.isdir(args.output_dir):
+        print('Output directory did not exist, creating.. (%s)' % args.output_dir)
+        os.makedirs(args.output_dir)
     if config:
         fetch_repos(args.output_dir, config)
     else:
