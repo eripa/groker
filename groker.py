@@ -29,6 +29,9 @@ def parse_args():
     parser.add_argument('-o', '--output-dir',
                         help='Where to put the repositories (usually under OpenGroks src directory, default=/var/opengrok/src)',
                         default='/var/opengrok/src')
+    parser.add_argument('-g', '--opengrok',
+                        help='Path to the OpenGrok tool, default=/opt/opengrok/bin/OpenGrok)',
+                        default='/opt/opengrok/bin/OpenGrok')
     return parser.parse_args()
 
 def read_config(file_name):
@@ -80,6 +83,7 @@ def repo_init(url, tag, target):
         shutil.rmtree(target, ignore_errors=True)
 
 def repo_sync(target):
+    # use subprocess instead of plumbum as repo requires python2
     sync_cmd = shlex.split('/usr/bin/python %s sync -j8' % (repo.__str__()))
     try:
         with local.cwd(target):
@@ -111,6 +115,15 @@ def fetch_repos(output_dir, config):
         else:
             print('WARNING: Selected type %s for %s is not yet implemented' % (details['type'], name))
 
+def reindex_opengrok(opengrok):
+    opengrok_cmd = shlex.split('%s index' % opengrok)
+    try:
+        subprocess.check_call(opengrok_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+    except subprocess.CalledProcessError as e:
+        print('Could not index, error running OpenGrok index, message was:\n%s' % (e.output))
+    except FileNotFoundError:
+        print('Could not index, unable to find OpenGrok tool at %s, you can specify a path with -g/--opengroup <path>' % opengrok)
+
 def main():
     args = parse_args()
     config = read_config(args.config_file)
@@ -119,6 +132,7 @@ def main():
         os.makedirs(args.output_dir)
     if config:
         fetch_repos(args.output_dir, config)
+        reindex_opengrok(args.opengrok)
     else:
         sys.exit('No repos found in %s, exiting...' % (args.config_file))
 
