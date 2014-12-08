@@ -14,7 +14,6 @@ Secondly the script will also initiate opengrok reindex procedure.
 
 # Todo
 
-  - Add functionality to kick of OpenGrok re-index
   - Write simple instructions and a shell wrapper for Crontab
 
 # Configuration
