@@ -8,19 +8,27 @@
 #   type: repo
 #   url: ssh://user@review.mysite.ab:29418/cyanogen/CyanogenMod/android
 #   tags:
-#     - cm-10.1.0-RC3
+#     - cm-11.0
 # opengrok:
 #   type: git
 #   url: https://github.com/OpenGrok/OpenGrok.git
+#   tags:
+#     - master
 #
 # Current types available:
 # ========================
 #
-#   - repo: A repo manifest. Each underlaying repository will be fetched as
-#           individual gits. Tags will be ignored and will need explicit include
-#           below as a 'tags' array. See above example
+#   - repo: A repo manifest, required 'repo' tool to be installed and available
 #   - git: A regular git. It will be fetched as-is
 
 cyanogen:
   type: repo
   url: ssh://user@review.mysite.ab:29418/cyanogen/CyanogenMod/android
+  tags:
+    - master
+
+opengrok:
+  type: git
+  url: https://github.com/OpenGrok/OpenGrok.git
+  tags:
+    - master
