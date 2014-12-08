@@ -18,6 +18,8 @@ There is a configuration template in the repository, repos.yml-template, copy/re
 
 # Usage
 
+After cloning you should run `pip install -r requirements.txt`, use a [virtualenv](http://docs.python-guide.org/en/latest/dev/virtualenvs/) is you want to isolate it. Tested with Python **3.4.2**. 
+
     $ ./groker.py --help
     usage: groker.py [-h] [-c CONFIG_FILE] [-o OUTPUT_DIR]
 
@@ -30,3 +32,26 @@ There is a configuration template in the repository, repos.yml-template, copy/re
       -o OUTPUT_DIR, --output-dir OUTPUT_DIR
                             Where to put the repositories (usually under OpenGroks
                             src directory, default=/var/opengrok/src)
+# License
+
+The MIT License (MIT)
+
+Copyright (c) 2014 Eric Ripa
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
