@@ -4,20 +4,19 @@
 This is a script for automatically parse the ***REMOVED*** gerrit site for repos
 to add to the {OpenGrok cross-reference and history browser.
 
-Author: Eric Ripa - eric.ripa@***REMOVED*** (2014-10-20)
+Author: Eric Ripa - eric.ripa@***REMOVED*** (2014-12-08)
 
 '''
 
 import argparse
-import xml.etree.ElementTree as ET
 from plumbum import local
 from plumbum.cmd import git
+from plumbum.cmd import repo
 from plumbum.commands.processes import ProcessExecutionError
+import subprocess, shlex
 import yaml
 import os
 import shutil
-import sys
-import tempfile
 
 def parse_args():
     parser = argparse.ArgumentParser(description = "***REMOVED*** {OpenGrok helper")
@@ -64,23 +63,48 @@ def git_update(tag, target):
     except ProcessExecutionError as e:
         print('Error updating %s with tag %s, message was:\n%s' % (target, tag, e.stderr))
 
-def get_git_target(name, details, output_dir):
-    print('working on %s' % (details['url']))
+def repo_init(url, tag, target):
+    if not os.path.isdir(target):
+        os.makedirs(target)
+    # use subprocess instead of plumbum as repo requires python2
+    init_cmd = shlex.split('/usr/bin/python %s init -u %s  -b %s' % (repo.__str__(), url, tag))
+    try:
+        with local.cwd(target):
+            res = subprocess.check_call(init_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+            repo_sync(target)
+    except subprocess.CalledProcessError as e:
+        print('Error initializing repo %s at %s with tag %s, message was:\n%s' % (url, target, tag, e.output))
+        shutil.rmtree(target, ignore_errors=True)
+
+def repo_sync(target):
+    sync_cmd = shlex.split('/usr/bin/python %s sync -j8' % (repo.__str__()))
+    try:
+        with local.cwd(target):
+            res = subprocess.check_call(sync_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+    except subprocess.CalledProcessError as e:
+        print('Error syncing %s, message was:\n%s' % (target, e.output))
+
+def fetch_repo(name, details, output_dir):
+    print('processing %s source at %s' % (details['type'], details['url']))
     for tag in details['tags']:
         target_directory = os.path.join(output_dir, target_name(name, tag))
         if os.path.isdir(target_directory):
             print('  updating tag: %s, target: %s' % (tag, target_directory))
-            git_update(tag, target_directory)
+            if details['type'] == 'git':
+                git_update(tag, target_directory)
+            elif details['type'] == 'repo':
+                repo_sync(target_directory)
         else:
             print('  fetching tag: %s, target: %s' % (tag, target_directory))
-            git_clone(details['url'], tag, target_directory)
+            if details['type'] == 'git':
+                git_clone(details['url'], tag, target_directory)
+            elif details['type'] == 'repo':
+                repo_init(details['url'], tag, target_directory)
 
 def fetch_repos(output_dir, config):
     for name, details in config.items():
-        if details['type'] == 'repo':
-            print('repo! %s' % details)
-        elif details['type'] == 'git':
-            get_git_target(name, details, output_dir)
+        if details['type'] == 'repo' or details['type'] == 'git':
+            fetch_repo(name, details, output_dir)
         else:
             print('WARNING: Selected type %s for %s is not yet implemented' % (details['type'], name))
 
