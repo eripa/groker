@@ -10,6 +10,7 @@ Author: Eric Ripa - eric.ripa@***REMOVED*** (2014-10-20)
 
 import argparse
 import xml.etree.ElementTree as ET
+from plumbum import local
 from plumbum.cmd import git
 from plumbum.commands.processes import ProcessExecutionError
 import yaml
@@ -51,9 +52,17 @@ def target_name(name, target):
 def git_clone(url, tag, target):
     clone_cmd = git['clone', '-b', tag, url, target]
     try:
-        clone_cmd()
+        res = clone_cmd()
     except ProcessExecutionError as e:
         print('Error cloning %s with tag %s, message was:\n%s' % (url, tag, e.stderr))
+
+def git_update(tag, target):
+    update_command = git['pull']
+    try:
+        with local.cwd(target):
+            res = update_command()
+    except ProcessExecutionError as e:
+        print('Error updating %s with tag %s, message was:\n%s' % (target, tag, e.stderr))
 
 def get_git_target(name, details, output_dir):
     print('working on %s' % (details['url']))
@@ -61,10 +70,10 @@ def get_git_target(name, details, output_dir):
         target_directory = os.path.join(output_dir, target_name(name, tag))
         if os.path.isdir(target_directory):
             print('  updating tag: %s, target: %s' % (tag, target_directory))
+            git_update(tag, target_directory)
         else:
             print('  fetching tag: %s, target: %s' % (tag, target_directory))
             git_clone(details['url'], tag, target_directory)
-
 
 def fetch_repos(output_dir, config):
     for name, details in config.items():
