@@ -12,13 +12,18 @@ First time it will get the data (`git clone -b <tag/branch> <url> <name-tag/bran
 
 Secondly the script will also initiate opengrok reindex procedure.
 
+# Todo
+
+  - Add functionality to kick of OpenGrok re-index
+  - Write simple instructions and a shell wrapper for Crontab
+
 # Configuration
 
 There is a configuration template in the repository, repos.yml-template, copy/rename to repos.yml and edit as needed.
 
 # Usage
 
-After cloning you should run `pip install -r requirements.txt`, use a [virtualenv](http://docs.python-guide.org/en/latest/dev/virtualenvs/) is you want to isolate it. Tested with Python **3.4.2**. 
+After cloning you should run `pip install -r requirements.txt`, use a [virtualenv](http://docs.python-guide.org/en/latest/dev/virtualenvs/) if you want to isolate it. Tested with Python **3.4.2**.
 
     $ ./groker.py --help
     usage: groker.py [-h] [-c CONFIG_FILE] [-o OUTPUT_DIR]
