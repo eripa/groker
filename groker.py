@@ -32,6 +32,9 @@ def parse_args():
     parser.add_argument('-g', '--opengrok',
                         help='Path to the OpenGrok tool, default=/opt/opengrok/bin/OpenGrok)',
                         default='/opt/opengrok/bin/OpenGrok')
+    parser.add_argument('-p', '--python2',
+                        help='*NOT IMPLEMENTED* Path to python2 (might be needed for Repo YMMV), default=/usr/bin/python2)',
+                        default='/usr/bin/python2')
     return parser.parse_args()
 
 def read_config(file_name):
@@ -73,7 +76,7 @@ def repo_init(url, tag, target):
     if not os.path.isdir(target):
         os.makedirs(target)
     # use subprocess instead of plumbum as repo requires python2
-    init_cmd = shlex.split('/usr/bin/python %s init -u %s  -b %s' % (repo.__str__(), url, tag))
+    init_cmd = shlex.split('/usr/bin/python2 %s init -u %s  -b %s' % (repo.__str__(), url, tag))
     try:
         with local.cwd(target):
             res = subprocess.check_call(init_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
@@ -84,7 +87,7 @@ def repo_init(url, tag, target):
 
 def repo_sync(target):
     # use subprocess instead of plumbum as repo requires python2
-    sync_cmd = shlex.split('/usr/bin/python %s sync -j8' % (repo.__str__()))
+    sync_cmd = shlex.split('/usr/bin/python2 %s sync -j8' % (repo.__str__()))
     try:
         with local.cwd(target):
             res = subprocess.check_call(sync_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
