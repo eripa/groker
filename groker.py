@@ -120,8 +120,10 @@ def fetch_repos(output_dir, config):
 
 def reindex_opengrok(opengrok):
     opengrok_cmd = shlex.split('%s index' % opengrok)
+    print('Starting OpenGrok index operation...')
     try:
         subprocess.check_call(opengrok_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+        print('Done!')
     except subprocess.CalledProcessError as e:
         print('Could not index, error running OpenGrok index, message was:\n%s' % (e.output))
     except FileNotFoundError:
