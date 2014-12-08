@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 
 '''
-This is a script for automatically parse the ***REMOVED*** gerrit site for repos
-to add to the {OpenGrok cross-reference and history browser.
+A basic script that is used to fetch and update defined repositories(YAML format)
+into an OpenGrok source location.
 
-Author: Eric Ripa - eric.ripa@***REMOVED*** (2014-12-08)
+The main feature is (compared to running it in crontab) is that it provides an
+easy-to-read and easy-to-use YAML configuration file that even non-operation
+people or other services can use.
 
+Author: Eric Ripa - eric@ripa.io (2014-12-08)
 '''
 
 import argparse
@@ -19,7 +22,7 @@ import os
 import shutil
 
 def parse_args():
-    parser = argparse.ArgumentParser(description = "***REMOVED*** {OpenGrok helper")
+    parser = argparse.ArgumentParser(description = "groker - {OpenGrok helper")
     parser.add_argument('-c', '--config-file',
                         help='Use a non-default configuration (default is repos.yml)',
                         default='repos.yml')
