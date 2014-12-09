@@ -14,7 +14,7 @@ Secondly the script will also initiate opengrok reindex procedure.
 
 # Todo
 
-  - Write simple instructions and a shell wrapper for Crontab
+  - Refactor code to support --python2 argument for repo tool execution using user-provided python2 path
 
 # Configuration
 
