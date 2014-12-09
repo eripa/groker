@@ -21,7 +21,8 @@ usage () {
 
 # First check for --help or -h and print usage if requested
 args="$@"
-if [ -z "${args##*"--help"*}" ] || [ -z "${args##*"-h"*}" ] ; then
+if [ -n "${args}" ] \
+    && ([ -z "${args##*"--help"*}" ] || [ -z "${args##*"-h"*}" ]) ; then
     usage
 fi
 
