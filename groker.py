@@ -35,6 +35,9 @@ def parse_args():
     parser.add_argument('-p', '--python2',
                         help='*NOT IMPLEMENTED* Path to python2 (might be needed for Repo YMMV), default=/usr/bin/python2)',
                         default='/usr/bin/python2')
+    parser.add_argument('-v', '--verbose',
+                        help='Be more verbose, default will only print if changed',
+                        action='store_true')
     return parser.parse_args()
 
 def read_config(file_name):
@@ -64,11 +67,15 @@ def git_clone(url, tag, target):
     except ProcessExecutionError as e:
         print('Error cloning %s with tag %s, message was:\n%s' % (url, tag, e.stderr))
 
-def git_update(tag, target):
+def git_update(tag, target, verbose=False):
     update_command = git['pull']
     try:
         with local.cwd(target):
             res = update_command()
+            if not 'Already up-to-date' in res:
+                print('   `-> updated tag {} in target {}'.format(tag, target))
+            elif verbose:
+                print('   `-> tag {} already up-to-date in target {}'.format(tag, target))
     except ProcessExecutionError as e:
         print('Error updating %s with tag %s, message was:\n%s' % (target, tag, e.stderr))
 
@@ -85,45 +92,54 @@ def repo_init(url, tag, target):
         print('Error initializing repo %s at %s with tag %s, message was:\n%s' % (url, target, tag, e.output))
         shutil.rmtree(target, ignore_errors=True)
 
-def repo_sync(target):
+def repo_sync(target, verbose=False):
     # use subprocess instead of plumbum as repo requires python2
     sync_cmd = shlex.split('/usr/bin/python2 %s sync -j8' % (repo.__str__()))
     try:
         with local.cwd(target):
-            res = subprocess.check_call(sync_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+            res = subprocess.check_output(sync_cmd, stderr=subprocess.DEVNULL)
+            if b'Updating' in res:
+                print('   `-> updated repo target {}'.format(target))
+            elif verbose:
+                print('   `-> repo target {} already up-to-date'.format(target))
     except subprocess.CalledProcessError as e:
         print('Error syncing %s, message was:\n%s' % (target, e.output))
 
-def fetch_repo(name, details, output_dir):
-    print('processing %s source at %s' % (details['type'], details['url']))
+def fetch_repo(name, details, output_dir, verbose=False):
+    if verbose:
+        print('processing %s source at %s' % (details['type'], details['url']))
     for tag in details['tags']:
         target_directory = os.path.join(output_dir, target_name(name, tag))
         if os.path.isdir(target_directory):
-            print('  updating tag: %s, target: %s' % (tag, target_directory))
+            if verbose:
+                print('  updating existing tag: %s, target: %s' % (tag, target_directory))
             if details['type'] == 'git':
-                git_update(tag, target_directory)
+                git_update(tag, target_directory, verbose)
             elif details['type'] == 'repo':
-                repo_sync(target_directory)
+                repo_sync(target_directory, verbose)
         else:
-            print('  fetching tag: %s, target: %s' % (tag, target_directory))
+            print('  fetching new tag: %s, target: %s' % (tag, target_directory))
             if details['type'] == 'git':
                 git_clone(details['url'], tag, target_directory)
             elif details['type'] == 'repo':
                 repo_init(details['url'], tag, target_directory)
 
-def fetch_repos(output_dir, config):
+def fetch_repos(args, config):
+    output_dir = args.output_dir
     for name, details in config.items():
         if details['type'] == 'repo' or details['type'] == 'git':
-            fetch_repo(name, details, output_dir)
+            fetch_repo(name, details, output_dir, args.verbose)
         else:
             print('WARNING: Selected type %s for %s is not yet implemented' % (details['type'], name))
 
-def reindex_opengrok(opengrok):
+def reindex_opengrok(opengrok, verbose=False):
     opengrok_cmd = shlex.split('%s index' % opengrok)
-    print('Starting OpenGrok index operation...')
+    if verbose:
+        print('Starting OpenGrok index operation...')
     try:
         subprocess.check_call(opengrok_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
-        print('Done!')
+        if verbose:
+            print('Done!')
     except subprocess.CalledProcessError as e:
         print('Could not index, error running OpenGrok index, message was:\n%s' % (e.output))
     except FileNotFoundError:
@@ -133,11 +149,12 @@ def main():
     args = parse_args()
     config = read_config(args.config_file)
     if not os.path.isdir(args.output_dir):
-        print('Output directory did not exist, creating.. (%s)' % args.output_dir)
+        if args.verbose:
+            print('Output directory did not exist, creating.. (%s)' % args.output_dir)
         os.makedirs(args.output_dir)
     if config:
-        fetch_repos(args.output_dir, config)
-        reindex_opengrok(args.opengrok)
+        fetch_repos(args, config)
+        reindex_opengrok(args.opengrok, args.verbose)
     else:
         sys.exit('No repos found in %s, exiting...' % (args.config_file))
 
